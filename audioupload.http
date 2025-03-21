@@ -7,3 +7,7 @@ Content-Type: audio/wav
 
 < ./docs/assets/audios/MicrosoftAI.wav
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+GET https://{{$dotenv AZURE_UPLOADER_FUNCTION_APP_NAME}}.azurewebsites.net/api/CloneFile?fileName=f369bbca-bc85-4fce-85d1-bb1d10b78a2d.wav

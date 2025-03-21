@@ -15,10 +15,10 @@ hooks:
       continueOnError: false
 services:
   uploader:
-    project: ./src/uploader
+    project: ./solutions/uploader
     language: dotnet
     host: function
   processor:
-    project: ./src/processor
+    project: ./solutions/processor
     language: dotnet
     host: function
