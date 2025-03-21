@@ -7,34 +7,40 @@ using Azure.Storage.Blobs;
 
 namespace FuncStd
 {
-    public class AudioUpload
+    public class CloneFile
     {
         private readonly ILogger _logger;
         private readonly BlobContainerClient _audioContainerClient;
 
-        public AudioUpload(ILoggerFactory loggerFactory, IAzureClientFactory<BlobServiceClient> blobClientFactory)
+        public CloneFile(ILoggerFactory loggerFactory, IAzureClientFactory<BlobServiceClient> blobClientFactory)
         {
-            _logger = loggerFactory.CreateLogger<AudioUpload>();
+            _logger = loggerFactory.CreateLogger<CloneFile>();
             var storageAccountContainer = Environment.GetEnvironmentVariable("STORAGE_ACCOUNT_CONTAINER") ?? throw new ArgumentNullException("STORAGE_ACCOUNT_CONTAINER");
             _audioContainerClient = blobClientFactory.CreateClient("audioUploader").GetBlobContainerClient(storageAccountContainer);
             _audioContainerClient.CreateIfNotExists();
         }
 
-        [Function(nameof(AudioUpload))]
+        [Function(nameof(CloneFile))]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", "get")] HttpRequest req,
+            string fileName
         )
         {
             _logger.LogInformation("Processing a new audio file upload request");
 
-            // Get the first file in the form
-            var file = req.Form.Files[0];
+            // Get the blob in the container named as fileName
+            var blobClient = _audioContainerClient.GetBlobClient(fileName);
+            var content = await blobClient.OpenReadAsync();
 
-            // Store the file as a blob
-            await _audioContainerClient.UploadBlobAsync($"{Guid.NewGuid()}.wav", file.OpenReadStream());
+            // Create a new blob and copy the content from the existing blob
+            var newBlobName = $"{Guid.NewGuid()}.wav";
+            var newBlobClient = _audioContainerClient.GetBlobClient(newBlobName);
+            await newBlobClient.UploadAsync(content);
 
             // Store the file as a blob and return a success response
-            return new OkObjectResult("Uploaded!");
+            return new OkObjectResult("Copied!");
         }
+
+        
     }
 }
